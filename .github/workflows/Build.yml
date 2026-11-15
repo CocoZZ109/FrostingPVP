@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install Java 25
@@ -29,17 +29,34 @@ jobs:
           gradle-version: '9.1.0'
           cache-disabled: true
 
-      - name: Check project files
+      - name: Show project files
         run: |
+          pwd
           ls -la
-          find . -maxdepth 3 -type f
+          find . -maxdepth 5 -type f
 
-      - name: Compile FrostingPVP
-        run: gradle clean build --no-daemon --stacktrace
+      - name: Compile plugin
+        id: compile
+        continue-on-error: true
+        run: |
+          gradle clean build --no-daemon --stacktrace > build-log.txt 2>&1
+          cat build-log.txt
+          test ${PIPESTATUS[0]} -eq 0
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: FrostingPVP-Build-Log
+          path: build-log.txt
 
       - name: Upload JAR
+        if: steps.compile.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: FrostingPVP-JAR
           path: build/libs/*.jar
-          if-no-files-found: error
+
+      - name: Report build failure
+        if: steps.compile.outcome == 'failure'
+        run: exit 1
