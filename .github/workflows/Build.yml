@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Java 25
@@ -24,7 +24,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
-          cache: gradle
 
       - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -32,21 +31,20 @@ jobs:
           gradle-version: '9.1.0'
           cache-disabled: true
 
-      - name: Check project files
+      - name: Check project structure
         run: |
-          echo "Checking FrostingPVP files..."
+          echo "Checking project..."
           ls -la
+          echo "Checking source files..."
           find src -type f
 
-      - name: Compile plugin
+      - name: Compile FrostingPVP
         run: gradle clean build --no-daemon --stacktrace
 
-      - name: Find compiled JAR
-        run: |
-          echo "Looking for compiled plugins..."
-          find build/libs -type f -name "*.jar"
+      - name: Find JAR
+        run: find build/libs -type f -name "*.jar"
 
-      - name: Upload FrostingPVP JAR
+      - name: Upload plugin
         uses: actions/upload-artifact@v4
         with:
           name: FrostingPVP-JAR
